@@ -1,0 +1,45 @@
+Primera Forma Normal (1FN)
+
+ Situación inicial
+En una venta pueden participar múltiples productos. Una representación no normalizada podría concentrar dentro de una misma venta los diferentes productos, cantidades y precios.
+
+Por ejemplo:
+
+VENTA_INICIAL
+---------------------------------------------------------------------------
+id_venta | fecha       | cliente    | productos              | cantidades | precios
+1        | 15/09/2026  | Valentina  | Pijama, Conjunto       | 2, 1       | 15000, 22000
+
+Esta representación presenta grupos repetitivos, ya que los atributos productos, cantidades y precios contienen múltiples valores dentro de una misma celda.
+Esto no cumple con la atomicidad requerida por la Primera Forma Normal.
+
+ Aplicación de 1FN
+Para cumplir con la 1FN se separó la información de la venta de la información correspondiente a cada producto vendido.
+
+Se obtiene:
+VENTA
+(
+    id_venta,
+    fecha,
+    estado,
+    id_cliente,
+    id_metodo_pago
+)
+
+y:
+DETALLE_VENTA
+(
+    id_venta,
+    id_producto,
+    cantidad,
+    precio_unitario_historico
+)
+De esta manera, cada atributo contiene un único valor y los grupos repetitivos son eliminados.
+Por ejemplo, una venta con tres productos se representa mediante tres registros en DETALLE_VENTA:
+
+id_venta | id_producto | cantidad | precio_unitario_historico
+1        | 10          | 2        | 15000
+1        | 15          | 1        | 22000
+1        | 21          | 3        | 8000
+
+Por lo tanto, el modelo cumple con la Primera Forma Normal.
