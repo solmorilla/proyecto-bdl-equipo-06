@@ -1,0 +1,177 @@
+Tercera Forma Normal (3FN)
+
+1. Eliminación de dependencias transitivas
+
+Para alcanzar la Tercera Forma Normal se analizaron las dependencias entre los atributos no clave.
+
+Una dependencia transitiva se produciría cuando un atributo no clave depende de otro atributo no clave, en lugar de depender directamente de la clave primaria.
+
+Ejemplo: PRODUCTO y CATEGORIA
+
+Una estructura que no estaría normalizada podría contener:
+
+PRODUCTO
+(
+    id_producto,
+    nombre,
+    id_categoria,
+    nombre_categoria,
+    descripcion_categoria
+)
+
+En este caso:
+
+id_producto → id_categoria
+id_categoria → nombre_categoria
+id_categoria → descripcion_categoria
+
+Por lo tanto, existiría una dependencia transitiva:
+
+id_producto
+    ↓
+id_categoria
+    ↓
+nombre_categoria / descripcion_categoria
+
+Para eliminarla, la información de la categoría se separa en su propia relación:
+
+CATEGORIA
+(
+    id_categoria,
+    nombre,
+    descripcion
+)
+
+Mientras que PRODUCTO conserva solamente la referencia mediante una clave foránea:
+
+PRODUCTO
+(
+    id_producto,
+    nombre,
+    descripcion,
+    talle,
+    precio_vigente,
+    stock,
+    id_categoria
+)
+
+⸻
+
+2. Información del cliente
+
+También se evita almacenar los datos del cliente directamente dentro de VENTA.
+
+Una estructura como la siguiente produciría redundancia:
+
+VENTA
+(
+    id_venta,
+    fecha,
+    id_cliente,
+    nombre_cliente,
+    apellido_cliente,
+    email_cliente
+)
+
+Los datos propios del cliente dependen de id_cliente, por lo que se mantienen en la relación CLIENTE:
+
+CLIENTE
+(
+    id_cliente,
+    nombre,
+    apellido,
+    email,
+    telefono,
+    direccion
+)
+
+La relación VENTA solamente mantiene la referencia:
+
+VENTA
+(
+    id_venta,
+    fecha,
+    estado,
+    id_cliente,
+    id_metodo_pago
+)
+
+De esta manera se evita repetir los datos del cliente en cada venta.
+
+⸻
+
+3. Información del método de pago
+
+De manera similar, no se almacena el nombre del método de pago directamente en cada venta.
+
+En lugar de:
+
+VENTA
+(
+    id_venta,
+    fecha,
+    estado,
+    id_cliente,
+    id_metodo_pago,
+    nombre_metodo_pago
+)
+
+se mantiene una relación independiente:
+
+METODO_PAGO
+(
+    id_metodo_pago,
+    nombre
+)
+
+y VENTA referencia el método correspondiente mediante id_metodo_pago.
+
+⸻
+
+Modelo final en 3FN
+
+Luego de aplicar las tres formas normales, el modelo queda compuesto por las siguientes relaciones:
+
+CLIENTE(
+    id_cliente PK,
+    nombre,
+    apellido,
+    email,
+    telefono,
+    direccion
+)
+CATEGORIA(
+    id_categoria PK,
+    nombre,
+    descripcion
+)
+PRODUCTO(
+    id_producto PK,
+    nombre,
+    descripcion,
+    talle,
+    precio_vigente,
+    stock,
+    id_categoria FK
+)
+METODO_PAGO(
+    id_metodo_pago PK,
+    nombre
+)
+VENTA(
+    id_venta PK,
+    fecha,
+    estado,
+    id_cliente FK,
+    id_metodo_pago FK
+)
+DETALLE_VENTA(
+    id_venta PK/FK,
+    id_producto PK/FK,
+    cantidad,
+    precio_unitario_historico
+)
+
+La clave primaria de DETALLE_VENTA es compuesta:
+
+(id_venta, id_producto)
