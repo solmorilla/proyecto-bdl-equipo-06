@@ -2,7 +2,7 @@
 
 **Proyecto:** E-Commerce Sueño Contigo  
 **Equipo:** 06  
-**Fernandez, Lucas Tomas**
+
 
 ---
 
