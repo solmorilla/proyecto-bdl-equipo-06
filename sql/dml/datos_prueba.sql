@@ -1,9 +1,3 @@
--- ==============================================================================
--- ETAPA III: SCRIPT DML - Poblado Inicial de Datos de Prueba
--- Coherencia: 8 a 10 registros por tabla
--- ==============================================================================
-
--- PARTE 1: Entidades Maestras (Mauro)
 INSERT INTO CATEGORIA (nombre, descripcion) VALUES 
 ('Pijamas Invierno', 'Pijamas de polar y franela'),
 ('Pijamas Verano', 'Pijamas cortos de algodón y satén'),
@@ -33,10 +27,6 @@ INSERT INTO CLIENTE (nombre, apellido, email, telefono, direccion) VALUES
 ('Agustín', 'Díaz', 'agusdiaz@email.com', '3794666666', 'Mendoza 303, Corrientes'),
 ('María', 'García', 'mariagarcia@email.com', '3794777777', '9 de Julio 404, Resistencia'),
 ('Julieta', 'Alonso', 'julialonso@email.com', '3794888888', 'Pellegrini 505, Corrientes');
-
--- ==============================================================================
--- PARTE 2: Entidades Transaccionales y Dependientes (Lorenzo Marder)
--- ==============================================================================
 
 INSERT INTO PRODUCTO (nombre, descripcion, talle, precio_vigente, stock, id_categoria) VALUES 
 ('Pijama Polar Oso', 'Pijama de dos piezas súper abrigado', 'M', 25000.00, 15, 1),
