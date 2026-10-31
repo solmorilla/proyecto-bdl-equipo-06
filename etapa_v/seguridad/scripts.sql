@@ -17,9 +17,10 @@ ALTER ROLE db_owner ADD MEMBER usuario_admin;
 GO
 
 -- 3. Permisos del usuario_lector (Mínimo Privilegio)
+-- Se otorga lectura en Venta y ejecución sobre el SP de VentaCompleta
 GRANT SELECT ON VENTA TO usuario_lector;
-GRANT EXECUTE ON [NOMBRE_DEL_SP_DE_MAURO] TO usuario_lector;
-DENY INSERT ON VENTA TO usuario_lector; 
+GRANT EXECUTE ON dbo.sp_RegistrarVentaCompleta TO usuario_lector;
+DENY INSERT ON VENTA TO usuario_lector; -- Bloqueo explícito
 GO
 
 -- 4. Rol personalizado y asignación

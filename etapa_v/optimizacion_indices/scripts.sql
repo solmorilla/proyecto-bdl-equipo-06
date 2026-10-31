@@ -10,7 +10,7 @@
   de cada una de las tres pruebas.
 */
 
-USE [NombreDeTuBaseDeDatos];
+USE [SuenoContigo];
 GO
 
 /* =====================================================
