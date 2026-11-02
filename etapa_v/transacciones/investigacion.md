@@ -1,58 +1,144 @@
-# Investigación: Transacciones SQL
+# Investigación: Manejo de transacciones SQL
 
-1. Objetivo
+Proyecto: Sueño Contigo  
+Etapa: V – Transacciones  
+Responsable: Sol Valentina Morilla
+Base de datos: SuenoContigo_BDL
 
-El objetivo de esta implementación es garantizar que el registro de una venta en el sistema de gestión de la lencería Sueño Contigo se realice de forma segura, manteniendo la integridad de los datos de la base de datos.
+## 1. Definición y objetivo
 
-Para ello, se utiliza una transacción SQL que agrupa las operaciones de registro de la venta, inserción de sus detalles y actualización del stock de productos.
+Una transacción es una unidad lógica de trabajo que agrupa una o varias operaciones realizadas sobre una base de datos. Su objetivo es garantizar que dichas operaciones se ejecuten de manera controlada, evitando que un error deje información incompleta o inconsistente.
 
-2. Atomicidad
+En SQL Server, las transacciones permiten confirmar todos los cambios realizados o deshacerlos cuando ocurre un problema.
 
-La atomicidad es una de las propiedades ACID de las bases de datos. Establece que una transacción debe ejecutarse completamente o no ejecutarse en absoluto. Esto se conoce como el principio de «Todo o Nada».
+En el sistema Sueño Contigo, el objetivo es asegurar que el registro de una venta, la inserción de sus detalles y la actualización del stock se realicen como una única operación.
 
-En nuestro sistema, el registro de una venta implica tres operaciones principales:
+## 2. Ventajas y aplicaciones
 
-- Insertar la cabecera de la venta en la tabla VENTA.
-- Insertar los productos vendidos en la tabla DETALLE_VENTA.
-- Descontar las unidades vendidas del stock en la tabla PRODUCTO.
+El uso de transacciones presenta las siguientes ventajas:
 
-Estas operaciones se ejecutan dentro de una misma transacción mediante BEGIN TRANSACTION. Si todas se realizan correctamente, se utiliza COMMIT TRANSACTION para confirmar los cambios. Si ocurre un error, el bloque CATCH ejecuta ROLLBACK TRANSACTION para deshacer las modificaciones realizadas dentro de la transacción.
+- Integridad de los datos: evita que queden registros incompletos cuando ocurre un error.
+- Consistencia: permite mantener relacionados correctamente los datos de las ventas, sus detalles y el inventario.
+- Recuperación ante errores: mediante `ROLLBACK` se pueden deshacer los cambios realizados durante una transacción.
+- Seguridad en las operaciones: permite confirmar los cambios solamente cuando todas las operaciones se completaron correctamente.
+- Control de operaciones simultáneas: permite utilizar bloqueos para reducir problemas cuando varias operaciones intentan modificar los mismos datos.
 
-De esta manera, se evita que una venta quede registrada parcialmente, por ejemplo, con una cabecera sin sus detalles o con el stock descontado sin que la operación se haya completado.
+Las transacciones pueden aplicarse en distintos procesos de un sistema, por ejemplo:
 
-3. Consistencia
+- Registro de ventas.
+- Actualización de inventario.
+- Registro de compras.
+- Procesamiento de pagos.
+- Movimientos de productos entre depósitos.
 
-La consistencia es otra propiedad ACID. Significa que una transacción debe mantener las reglas y restricciones de integridad de la base de datos, llevando los datos de un estado válido a otro estado válido.
+## 3. Implementación en SQL Server Express
 
-En el sistema Sueño Contigo, la consistencia se favorece mediante los siguientes controles:
+En SQL Server Express, las transacciones se implementan mediante instrucciones de Transact-SQL.
 
-- Existencia del producto: antes de registrar la venta, se verifica que el producto seleccionado exista.
-- Disponibilidad del stock: la actualización descuenta las unidades únicamente si el stock disponible es suficiente.
-- Integridad referencial: las claves foráneas de las tablas involucradas ayudan a garantizar que la venta se relacione con un cliente y un método de pago válidos, y que el detalle corresponda a una venta y un producto existentes.
-- Precio histórico: se guarda en DETALLE_VENTA el precio unitario utilizado en la venta, conservando el valor aplicado en esa operación.
+Las principales instrucciones utilizadas son:
 
-Si se detecta que el producto no existe o que el stock es insuficiente, se genera un error y la transacción se cancela.
+- `BEGIN TRANSACTION`: inicia una transacción.
+- `COMMIT TRANSACTION`: confirma los cambios realizados.
+- `ROLLBACK TRANSACTION`: deshace los cambios realizados durante la transacción.
+- `TRY...CATCH`: permite controlar los errores que puedan producirse.
+- `THROW`: genera un error para interrumpir la operación cuando se detecta una condición inválida.
+- `SCOPE_IDENTITY()`: obtiene el último identificador generado mediante una columna `IDENTITY` dentro del mismo ámbito.
 
-4. Implementación en SQL Server
+También se utilizan condiciones `IF` para validar los datos antes de confirmar la operación.
 
-Para implementar la transacción se utilizan las siguientes instrucciones:
+En nuestra implementación se utilizan bloqueos mediante `UPDLOCK` y `HOLDLOCK` al consultar el producto. Esto ayuda a evitar que otra transacción modifique simultáneamente el stock mientras se está registrando la venta.
 
-- BEGIN TRANSACTION: inicia la transacción.
-- BEGIN TRY: contiene las operaciones que se intentan ejecutar.
-- THROW: genera un error cuando se detecta una condición inválida.
-- COMMIT TRANSACTION: confirma los cambios cuando todas las operaciones finalizan correctamente.
-- BEGIN CATCH: captura los errores producidos durante la ejecución.
-- ROLLBACK TRANSACTION: deshace los cambios de la transacción cuando ocurre un error y existe una transacción activa.
-- SCOPE_IDENTITY(): obtiene el identificador generado para la nueva venta, que luego se utiliza para registrar sus detalles.
+La estructura general de una transacción es:
 
-5. Aplicación al sistema Sueño Contigo
+1. Iniciar la transacción.
+2. Realizar las validaciones necesarias.
+3. Ejecutar las operaciones sobre las tablas.
+4. Confirmar los cambios mediante `COMMIT` si todo fue correcto.
+5. Deshacer los cambios mediante `ROLLBACK` si ocurre un error.
 
-La transacción se aplica al proceso de registrar una venta de productos de lencería. Primero se obtiene el precio vigente del producto y se registra la cabecera de la venta. Luego se guarda el detalle con la cantidad vendida y el precio histórico. Finalmente, se descuenta del stock la cantidad correspondiente.
+## 4. Propiedades ACID
 
-Todas estas operaciones forman parte de la misma transacción. Esto permite mantener relacionadas la información de la venta, sus detalles y las existencias de los productos.
+Las propiedades ACID describen las garantías principales que deben ofrecer las transacciones:
 
-6. Conclusión
+### 4.1. Atomicidad
 
-La implementación de transacciones permite que el registro de una venta se realice como una única unidad de trabajo. La atomicidad garantiza que las operaciones se confirmen juntas o se deshagan ante un error, mientras que la consistencia contribuye a mantener las reglas de integridad de la base de datos.
+Establece que una transacción se ejecuta completamente o no se ejecuta.
 
-De esta forma, el sistema Sueño Contigo puede registrar las ventas y actualizar el stock de manera controlada, reduciendo el riesgo de inconsistencias en la información.
+En nuestro sistema, si se registra la cabecera de una venta y su detalle, pero no existe stock suficiente, se debe cancelar toda la operación. De esta manera, no queda una venta registrada sin que se haya podido actualizar correctamente el inventario.
+
+### 4.2. Consistencia
+
+Garantiza que una transacción mantenga la base de datos en un estado válido, respetando las reglas y restricciones definidas.
+
+En nuestro caso, se valida que el producto exista, que la cantidad sea mayor que cero y que haya stock suficiente. Además, se respetan las relaciones entre las tablas de ventas, detalles, productos, clientes y métodos de pago.
+
+### 4.3. Aislamiento
+
+Permite controlar cómo interactúan las transacciones que se ejecutan simultáneamente.
+
+En nuestro script se utilizan `UPDLOCK` y `HOLDLOCK` al consultar el producto, para proteger el registro durante la operación y reducir el riesgo de que otra transacción modifique el stock al mismo tiempo.
+
+### 4.4. Durabilidad
+
+Establece que los cambios confirmados mediante `COMMIT` deben permanecer guardados en la base de datos, incluso después de finalizar la transacción.
+
+En nuestro sistema, una venta confirmada debe conservarse en las tablas `VENTA` y `DETALLE_VENTA`, junto con el stock actualizado.
+
+## 5. Caso concreto aplicado al sistema de ventas Sueño Contigo
+
+En el sistema de ventas Sueño Contigo, cada operación de venta involucra distintas tablas de la base de datos.
+
+Para registrar una venta correctamente se deben realizar las siguientes operaciones:
+
+1. Obtener el precio vigente y el stock del producto seleccionado.
+2. Verificar que el producto exista y que la cantidad solicitada sea válida.
+3. Insertar la cabecera de la venta en la tabla `VENTA`.
+4. Obtener el identificador generado para esa venta.
+5. Insertar el detalle en `DETALLE_VENTA`, conservando el precio histórico del producto.
+6. Verificar que exista stock suficiente.
+7. Descontar del inventario la cantidad vendida.
+8. Confirmar la transacción mediante `COMMIT`.
+
+Todas estas operaciones se encuentran dentro de una misma transacción.
+
+Si alguna validación falla o se produce un error, se ejecuta `ROLLBACK`, evitando que queden cambios parciales en la base de datos.
+
+## 6. Script de demostración y resultados obtenidos
+
+La implementación se encuentra en el archivo `scripts.sql`, dentro de la carpeta `etapa_v/transacciones/`.
+
+El script contiene dos pruebas principales.
+
+### 6.1. Prueba exitosa: registro de una venta
+
+Se ejecuta una transacción con una cantidad de unidades inferior o igual al stock disponible.
+
+Se espera que:
+
+- Se inserte un registro en `VENTA`.
+- Se inserte el detalle correspondiente en `DETALLE_VENTA`.
+- Se descuente la cantidad vendida del stock del producto.
+- Se confirme la operación mediante `COMMIT TRANSACTION`.
+
+
+### 6.2. Prueba fallida: rollback por stock insuficiente
+
+Se ejecuta una transacción intentando vender 100 unidades del producto, una cantidad superior al stock disponible para la prueba.
+
+Se espera que:
+
+- Se detecte que no existe stock suficiente.
+- Se genere un error mediante `THROW`.
+- Se ejecute `ROLLBACK TRANSACTION`.
+- Se revierta la inserción de la cabecera de la venta.
+- Se revierta la inserción del detalle.
+- El stock permanezca sin modificaciones.
+
+
+## 7. Conclusión
+
+Las transacciones permiten ejecutar operaciones relacionadas como una única unidad lógica de trabajo, manteniendo la integridad y consistencia de la información.
+
+En el sistema Sueño Contigo, su implementación resulta fundamental para evitar que una venta quede registrada parcialmente o que el inventario se actualice de manera incorrecta.
+
+Mediante las pruebas realizadas se busca demostrar el funcionamiento de `COMMIT` y `ROLLBACK`, especialmente las propiedades de atomicidad y consistencia, junto con los mecanismos de control utilizados para proteger las operaciones sobre el stock.
